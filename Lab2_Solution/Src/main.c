@@ -60,36 +60,36 @@ void Error_Handler(void);
 
 int main(void)
 {
+    HAL_Init();             // Reset of all peripherals, init the Flash and Systick
+    SystemClock_Config();   //Configure the system clock
+	
+    /* Enable Peripheral Clocks in RCC ---------------------------------------*/
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+    
+    /* Configure GPIOC (LED) Pins --------------------------------------------*/
+    GPIOC->MODER |= (1 << 14) | (1 << 12);        // Set PC7 and PC6 to output mode
+    GPIOC->MODER &= ~((1 << 19) | (1 << 17));
+    GPIOC->OTYPER &= ~((1 << 7) | (1 << 6));      // Set push-pull output
+    GPIOC->OSPEEDR &= ~((1 << 14) | (1 << 12));   // Set low speed
+    GPIOC->PUPDR &= ~((1 << 15) | (1 << 14) | (1 << 13) | (1 << 12));   // Set no-pull up/down
+    GPIOC->ODR |= (1 << 6);   // Start PC6 high
+    // Explicitly clearing bits for example (don't really need unless reconfiguring already used pins)
+    
+    /* Configure GPIOA (Button) Pin ------------------------------------------*/
+    GPIOA->MODER &= ~((1 << 1) | (1 << 0));      // Set PA0 to input mode, low speed and pull-down
+    GPIOC->OSPEEDR &= ~((1 << 14) | (1 << 12));
+    GPIOC->PUPDR |= ~(1 << 1);
+    GPIOC->PUPDR &= ~(1 << 0);
 
-  /* USER CODE BEGIN 1 */
+    /* Configure the SysTick Timer and Interrupt -----------------------------*/
+    SysTick_Config(HAL_RCC_GetHCLKFreq()/1000); // Can replace HAL function call with explicit value (8000000 Hz)
+    NVIC_SetPriority(SysTick_IRQn, 0);
 
-  /* USER CODE END 1 */
-
-  /* MCU Configuration----------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* Initialize all configured peripherals */
-
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-  /* USER CODE END WHILE */
-
-  /* USER CODE BEGIN 3 */
-
-  }
-  /* USER CODE END 3 */
-
+    while (1) {
+       __WFI(); // Put processor to sleep until interrupt
+                // Pins are toggled every 200 SysTick ISR triggers
+    } 
 }
 
 /** System Clock Configuration
@@ -126,14 +126,14 @@ void SystemClock_Config(void)
 
     /**Configure the Systick interrupt time 
     */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+  //HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
     /**Configure the Systick 
     */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+  //HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
 /* USER CODE BEGIN 4 */
