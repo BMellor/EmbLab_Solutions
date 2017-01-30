@@ -103,16 +103,16 @@ void PendSV_Handler(void)
 /**
 * @brief This function handles System tick timer.
 */
+extern volatile uint32_t delay_count;
+
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
-    static uint8_t count = 0; // Static retains value across function calls
-        if( ++count >= 200) {
-        GPIOC->ODR ^= (1 << 7) | (1 << 6);  // Toggle both PC7 and PC6
-        count = 0;
+    if(delay_count > 0) {
+        delay_count--;
     }
-	
+
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();

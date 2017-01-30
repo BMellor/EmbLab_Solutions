@@ -39,6 +39,7 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+volatile uint32_t delay_count;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -51,6 +52,7 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+void delay_ms(uint32_t);
 
 /* USER CODE END PFP */
 
@@ -87,8 +89,15 @@ int main(void)
     NVIC_SetPriority(SysTick_IRQn, 0);
 
     while (1) {
+        delay_ms(200);
+        GPIOC->ODR ^= (1 << 7) | (1 << 6);  // Toggle both PC7 and PC6
+    } 
+}
+
+void delay_ms(uint32_t duration) {
+	delay_count = duration;
+	while(delay_count) {
        __WFI(); // Put processor to sleep until interrupt
-                // Pins are toggled every 200 SysTick ISR triggers
     } 
 }
 
