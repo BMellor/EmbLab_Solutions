@@ -70,14 +70,14 @@ int main(void)
     
     /* Configure GPIOC (LED) Pins --------------------------------------------*/
     GPIOC->MODER |= (1 << 18) | (1 << 16) | (1 << 14) | (1 << 12);    // Set PC9-PC6 to output mode
-    GPIOC->BSRR = (1 << 8) | (1 << 6);    // Set PC6 & PC8 high
+    GPIOC->BSRR = (1 << 8) | (1 << 6);    // Set PC6 & PC8 high (BSRR doesn't need bitwise)
     
     /* Configure GPIOA (Button) Pin ------------------------------------------*/
     GPIOA->PUPDR |= (1 << 1);   // Set PA0 to input mode, low speed and pull-down
 
     /* Configure the SysTick Timer and Interrupt -----------------------------*/
     SysTick_Config(HAL_RCC_GetHCLKFreq()/1000); 
-    NVIC_SetPriority(SysTick_IRQn, 0);
+    NVIC_SetPriority(SysTick_IRQn, 0);    // Change to priority 2 to allow the EXTI to starve the SysTick.
 
    /* Configure the EXTI PA0 Interrupt ---------------------------------------*/
     SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA;
