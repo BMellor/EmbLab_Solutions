@@ -66,29 +66,28 @@ int main(void)
     /* Enable Peripheral Clocks in RCC ---------------------------------------*/
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
     RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;
     
     /* Configure GPIOC (LED) Pins --------------------------------------------*/
-    GPIOC->MODER |= (1 << 14) | (1 << 12);        // Set PC7 and PC6 to output mode
-    GPIOC->MODER &= ~((1 << 19) | (1 << 17));
-    GPIOC->OTYPER &= ~((1 << 7) | (1 << 6));      // Set push-pull output
-    GPIOC->OSPEEDR &= ~((1 << 14) | (1 << 12));   // Set low speed
-    GPIOC->PUPDR &= ~((1 << 15) | (1 << 14) | (1 << 13) | (1 << 12));   // Set no-pull up/down
-    GPIOC->ODR |= (1 << 6);   // Start PC6 high
-    // Explicitly clearing bits for example (don't really need unless reconfiguring already used pins)
+    GPIOC->MODER |= (1 << 18) | (1 << 16) | (1 << 14) | (1 << 12);    // Set PC9-PC6 to output mode
+    GPIOC->BSRR = (1 << 8) | (1 << 6);    // Set PC6 & PC8 high
     
     /* Configure GPIOA (Button) Pin ------------------------------------------*/
-    GPIOA->MODER &= ~((1 << 1) | (1 << 0));      // Set PA0 to input mode, low speed and pull-down
-    GPIOC->OSPEEDR &= ~((1 << 14) | (1 << 12));
-    GPIOC->PUPDR |= ~(1 << 1);
-    GPIOC->PUPDR &= ~(1 << 0);
+    GPIOA->PUPDR |= (1 << 1);   // Set PA0 to input mode, low speed and pull-down
 
     /* Configure the SysTick Timer and Interrupt -----------------------------*/
-    SysTick_Config(HAL_RCC_GetHCLKFreq()/1000); // Can replace HAL function call with explicit value (8000000 Hz)
+    SysTick_Config(HAL_RCC_GetHCLKFreq()/1000); 
     NVIC_SetPriority(SysTick_IRQn, 0);
 
+   /* Configure the EXTI PA0 Interrupt ---------------------------------------*/
+    SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA;
+    EXTI->IMR |= (1 << 0);
+    EXTI->RTSR |= (1 << 0);
+    NVIC_SetPriority(EXTI0_1_IRQn, 1);
+    NVIC_EnableIRQ(EXTI0_1_IRQn);
+    
     while (1) {
        __WFI(); // Put processor to sleep until interrupt
-                // Pins are toggled every 200 SysTick ISR triggers
     } 
 }
 

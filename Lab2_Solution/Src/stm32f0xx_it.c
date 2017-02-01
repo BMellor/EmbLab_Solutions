@@ -129,6 +129,10 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /* USER CODE BEGIN 1 */
+void EXTI0_1_IRQHandler(void) {
+    EXTI->PR = 0x1;                       // Write 1 to clear interrupt flag
+    GPIOC->ODR ^= (1 << 8) | (1 << 9);    // Toggle PC8 & PC9 on button press
+}
 
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

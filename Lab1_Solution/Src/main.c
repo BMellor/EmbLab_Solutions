@@ -42,6 +42,7 @@ int main(void) {
             debouncer |= 0x01;                      // Set lowest bit of bit-vector
             if (debouncer == 0x7FFFFFFF) {          // This triggers once when transitioning to steady high
                 GPIOC->ODR ^= (1 << 7) | (1 << 6);  // Toggle both PC7 and PC6
+                
             }
         }
     } // End while
