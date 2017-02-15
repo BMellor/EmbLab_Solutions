@@ -17,14 +17,6 @@ void printChar(char);
 volatile _Bool rx_flag; // C-standard defines _Bool as smallest integer datatype (not an official type/keyword though)
 volatile uint8_t data;
 
-typedef enum {
-    S_IDLE,
-    S_RED,
-    S_GREEN,
-    S_BLUE,
-    S_ORANGE
-} op_states;
-
 int main(void) {
     
     HAL_Init(); /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -47,102 +39,72 @@ int main(void) {
     NVIC_EnableIRQ(USART3_4_IRQn); // Enable shared USART3 interrupt
     NVIC_SetPriority(USART3_4_IRQn, 1); // Set to high priority
     
-    op_states state = S_IDLE;
+    //op_states state = S_IDLE;
     printStr("CMD? ");
+
+    enum {
+        NONE = 0,
+        RED = 6,
+        BLUE = 7,
+        ORANGE = 8,        
+        GREEN = 9
+    } color = NONE;
     
     while (1) {
         __WFI(); // Wait until interrupt occurs before checking data
         
-        if(rx_flag) { // Have new data to process
-            switch(state) {
-                case S_IDLE:
-                    switch(data) {
-                        case 'r':
-                        case 'R':    
-                            state = S_RED;
-                            printStr("RED ");
-                            break;
-                        case 'g':
-                        case 'G':
-                            state = S_GREEN;
-                            printStr("GREEN ");
-                            break;
-                        case 'b':
-                        case 'B':
-                            state = S_BLUE;
-                            printStr("BLUE ");
-                            break;
-                        case 'o':
-                        case 'O':
-                            state = S_ORANGE;
-                            printStr("ORANGE ");
-                            break; 
-                        default:
-                            state = S_IDLE;
-                            printStr("Bad Command\n\rCMD? ");
-                    }
-                    break;
-                case S_RED:
-                    switch(data) {
-                        case '1':    
-                            GPIOC->BSRR = _BV(6);
-                            printStr("ON\n\rCMD? ");
-                            break;
-                        case '0':
-                            GPIOC->BSRR = _BV(22);
-                            printStr("OFF\n\rCMD? ");
-                            break;
-                        default:
-                            printStr("Bad Command\n\rCMD? ");
-                    }
-                    state = S_IDLE;
-                    break;
-                case S_GREEN:
-                    switch(data) {
-                        case '1':    
-                            GPIOC->BSRR = _BV(9);
-                            printStr("ON\n\rCMD? ");
-                            break;
-                        case '0':
-                            GPIOC->BSRR = _BV(25);
-                            printStr("OFF\n\rCMD? ");
-                            break;
-                        default:
-                            printStr("Bad Command\n\rCMD? ");
-                    }
-                    state = S_IDLE;
-                    break;
-                case S_BLUE:
-                    switch(data) {
-                        case '1':    
-                            GPIOC->BSRR = _BV(7);
-                            printStr("ON\n\rCMD? ");
-                            break;
-                        case '0':
-                            GPIOC->BSRR = _BV(23);
-                            printStr("OFF\n\rCMD? ");
-                            break;
-                        default:
-                            printStr("Bad Command\n\rCMD? ");
-                    }
-                    state = S_IDLE;
-                    break;
-                case S_ORANGE:
-                    switch(data) {
-                        case '1':    
-                            GPIOC->BSRR = _BV(8);
-                            printStr("ON\n\rCMD? ");
-                            break;
-                        case '0':
-                            GPIOC->BSRR = _BV(24);
-                            printStr("OFF\n\rCMD? ");
-                            break;
-                        default:
-                            printStr("Bad Command\n\rCMD? ");
-                    }
-                    state = S_IDLE;
-                    break;
-            }    
+        if(rx_flag) {
+            
+            if(color == NONE) {
+                switch(data) {
+                    case 'r':
+                    case 'R':    
+                        color = RED;
+                        printStr("Red ");
+                        break;
+                    case 'b':
+                    case 'B':
+                        color = BLUE;
+                        printStr("Blue ");
+                        break;
+                    case 'o':
+                    case 'O':
+                        color = ORANGE;
+                        printStr("Orange ");
+                        break; 
+                    case 'g':
+                    case 'G':
+                        color = GREEN;
+                        printStr("Green ");
+                        break;
+                    default:
+                        color = NONE;
+                        printStr("*Unknown color! (r,b,g,o)");
+                }
+            } else {
+                switch(data) {
+                    case '0':
+                        GPIOC->BSRR = _BV((color+16));
+                        printStr("Off");
+                        break;
+                    case '1':
+                        GPIOC->BSRR = _BV(color);
+                        printStr("On");
+                        break;
+                    case '2':
+                        GPIOC->ODR ^= _BV(color);
+                        printStr("Toggle");
+                        break;
+                    default:
+                        printStr("*Bad option! (0-2)");
+                }
+                color = NONE;
+            }
+            
+            if( color == NONE) {
+                printStr("\n\rCMD? ");
+            }
+            
             rx_flag = FALSE;
         }
     }
