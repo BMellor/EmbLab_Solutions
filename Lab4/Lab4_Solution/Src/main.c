@@ -39,9 +39,6 @@ int main(void) {
     NVIC_EnableIRQ(USART3_4_IRQn); // Enable shared USART3 interrupt
     NVIC_SetPriority(USART3_4_IRQn, 1); // Set to high priority
     
-    //op_states state = S_IDLE;
-    printStr("CMD? ");
-
     enum {
         NONE = 0,
         RED = 6,
@@ -49,6 +46,8 @@ int main(void) {
         ORANGE = 8,        
         GREEN = 9
     } color = NONE;
+    
+    printStr("CMD? ");
     
     while (1) {
         __WFI(); // Wait until interrupt occurs before checking data
